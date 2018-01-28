@@ -1,0 +1,7 @@
+{
+  "name": "hamov",
+  "version": "0.0.1",
+  "dependencies": {
+    "nightmare": "^2.10.0"
+  }
+}
