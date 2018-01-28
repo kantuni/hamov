@@ -6,17 +6,28 @@
 'use strict';
 
 const puppeteer = require('puppeteer');
+const axios = require('axios');
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
 
 app.set('port', 5001);
-app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.json({}));
 
 app.post('/orders', (req, res) => {
   res.status(200).end();
 
   process(req.body)
+    .then(() => {
+      let url = 'http://f97c8d3b.ngrok.io/done';
+      axios.post(url)
+        .then(res => {
+          console.log(res.statusText);
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    })
     .catch(error => {
       console.error(error);
     });
@@ -74,7 +85,6 @@ async function process(json) {
     return items;
   }, json['orders']);
 
-
   // open an item and order it
   for (const {url, title} of items) {
     await page.goto(url);
@@ -96,7 +106,9 @@ async function process(json) {
   await page.type('#addres_info_apartament', json['apartment'], {delay: random(100, 300)});
   await page.type('.add_info textarea', json['address_details'], {delay: random(100, 300)});
   await page.type('.comments textarea', json['comments'], {delay: random(100, 300)});
-  // TODO: click on "Pay on delivery"
+
+  // click on "Pay on delivery"
+  await page.click('#submitOrder-pay_in_place');
 
   // await browser.close();
 }
