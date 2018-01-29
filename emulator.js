@@ -109,12 +109,9 @@ async function process(json) {
 
   // click on "Pay on delivery"
   await page.click('#submitOrder-pay_in_place');
-
   // await browser.close();
 }
 
-
-// helper
 function random(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
