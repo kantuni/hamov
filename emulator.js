@@ -12,7 +12,7 @@ const bodyParser = require('body-parser');
 const app = express();
 
 app.set('port', 5001);
-app.use(bodyParser.json({}));
+app.use(bodyParser.json());
 
 app.post('/orders', (req, res) => {
   res.status(200).end();
