@@ -95,7 +95,7 @@ async function process(json) {
     console.log(`${title} is ordered.`);
   }
 
-  // click on "Order Now"
+  // click on `Order Now`
   await page.click('.order');
   await page.waitFor(random(5000, 7000));
 
@@ -107,7 +107,7 @@ async function process(json) {
   await page.type('.add_info textarea', json['address_details'], {delay: random(100, 300)});
   await page.type('.comments textarea', json['comments'], {delay: random(100, 300)});
 
-  // click on "Pay on delivery"
+  // click on `Pay on delivery`
   await page.click('#submitOrder-pay_in_place');
   // await browser.close();
 }
