@@ -14,29 +14,6 @@ const app = express();
 app.set('port', 5001);
 app.use(bodyParser.json());
 
-app.post('/orders', (req, res) => {
-  res.status(200).end();
-
-  process(req.body)
-    .then(() => {
-      let url = 'http://f97c8d3b.ngrok.io/done';
-      axios.post(url)
-        .then(res => {
-          console.log(res.statusText);
-        })
-        .catch(error => {
-          console.error(error);
-        });
-    })
-    .catch(error => {
-      console.error(error);
-    });
-});
-
-app.listen(app.get('port'), () => {
-  console.log('Express is running on port ' + app.get('port'));
-});
-
 
 async function process(json) {
   const browser = await puppeteer.launch({
@@ -95,7 +72,7 @@ async function process(json) {
     console.log(`${title} is ordered.`);
   }
 
-  // click on `Order Now`
+  // click on [ Order Now ]
   await page.click('.order');
   await page.waitFor(random(5000, 7000));
 
@@ -107,11 +84,37 @@ async function process(json) {
   await page.type('.add_info textarea', json['address_details'], {delay: random(100, 300)});
   await page.type('.comments textarea', json['comments'], {delay: random(100, 300)});
 
-  // click on `Pay on delivery`
+  // click on [ Pay on delivery ]
   await page.click('#submitOrder-pay_in_place');
+  
+  // close the browser
   // await browser.close();
 }
 
 function random(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
+
+
+app.post('/orders', (request, response) => {
+  response.status(200).end();
+
+  process(request.body)
+    .then(() => {
+      let url = 'http://f97c8d3b.ngrok.io/done';
+      axios.post(url)
+        .then(response => {
+          console.log(response.statusText);
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    })
+    .catch(error => {
+      console.error(error);
+    });
+});
+
+app.listen(app.get('port'), () => {
+  console.log('Express is running on port ' + app.get('port'));
+});
