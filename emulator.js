@@ -3,118 +3,116 @@
  */
 
 
-'use strict';
+const puppeteer = require("puppeteer")
+const axios = require("axios")
+const express = require("express")
+const bodyParser = require("body-parser")
+const app = express()
 
-const puppeteer = require('puppeteer');
-const axios = require('axios');
-const express = require('express');
-const bodyParser = require('body-parser');
-const app = express();
-
-app.set('port', 5001);
-app.use(bodyParser.json());
+app.set("port", 3000)
+app.use(bodyParser.json())
 
 
 async function process(json) {
   const browser = await puppeteer.launch({
     headless: false,
     ignoreHTTPSErrors: true
-  });
+  })
 
-  const page = await browser.newPage();
+  const page = await browser.newPage()
   await page.emulate({
     viewport: {
       height: 768,
       width: 1200
     },
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:58.0) Gecko/20100101 Firefox/58.0'
-  });
+    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:58.0) Gecko/20100101 Firefox/58.0"
+  })
 
-  await page.goto('http://menu.am/en/');
-  await page.waitFor(random(5000, 7000));
-  await page.waitFor('#delivery_btn');
-  await page.click('#delivery_btn');
-  await page.goto(json['restaurant_url']);
-  await page.waitFor(random(5000, 7000));
+  await page.goto("http://menu.am/en/")
+  await page.waitFor(random(5000, 7000))
+  await page.waitFor("#delivery_btn")
+  await page.click("#delivery_btn")
+  await page.goto(json["restaurant_url"])
+  await page.waitFor(random(5000, 7000))
 
-  // TODO: calculate order price for each user  
+  // TODO: Calculate order price for each user.
   let items = await page.evaluate(orders => {
-    // get order urls and titles
-    let links = [...document.querySelectorAll('.title.prod_content_a')];
-    let items = [];
+    // Get order urls and titles.
+    let links = [...document.querySelectorAll(".title.prod_content_a")]
+    let items = []
 
     links.map(link => {
-      let title = link.innerText.trim();
-      let number = title.split(' ')[0];
+      let title = link.innerText.trim()
+      let number = title.split(" ")[0]
 
-      // flatten orders into a simple array
-      orders = Array.prototype.concat(...Object.values(orders));
+      // Flatten orders into a simple array.
+      orders = Array.prototype.concat(...Object.values(orders))
       orders.map(order => {
-        if (number === '#' + order) {
+        if (number === "#" + order) {
           items.push({
             url: link.href,
             title: title
-          });
+          })
         }
-      });
-    });
+      })
+    })
 
-    return items;
-  }, json['orders']);
+    return items
+  }, json["orders"])
 
-  // open an item and order it
+  // Open item and order it.
   for (const {url, title} of items) {
-    await page.goto(url);
-    await page.waitFor(random(5000, 7000));
-    await page.waitFor('#opts-save');
-    await page.click('#opts-save');
-    await page.waitFor(random(5000, 7000));
-    console.log(`${title} is ordered.`);
+    await page.goto(url)
+    await page.waitFor(random(5000, 7000))
+    await page.waitFor("#opts-save")
+    await page.click("#opts-save")
+    await page.waitFor(random(5000, 7000))
+    console.log(`${title} is ordered.`)
   }
 
-  // click on [ Order Now ]
-  await page.click('.order');
-  await page.waitFor(random(5000, 7000));
+  // Click on "Order Now" button.
+  await page.click(".order")
+  await page.waitFor(random(5000, 7000))
 
-  // enter delivery information
-  await page.type('#quick_order_phone', json['telephone'], {delay: random(100, 300)});
-  await page.type('#addres_info_street', json['delivery_address'], {delay: random(100, 300)});
-  await page.type('#addres_info_house', json['house'], {delay: random(100, 300)});
-  await page.type('#addres_info_apartament', json['apartment'], {delay: random(100, 300)});
-  await page.type('.add_info textarea', json['address_details'], {delay: random(100, 300)});
-  await page.type('.comments textarea', json['comments'], {delay: random(100, 300)});
+  // Enter delivery information.
+  await page.type("#quick_order_phone", json["telephone"], {delay: random(100, 300)})
+  await page.type("#addres_info_street", json["delivery_address"], {delay: random(100, 300)})
+  await page.type("#addres_info_house", json["house"], {delay: random(100, 300)})
+  await page.type("#addres_info_apartament", json["apartment"], {delay: random(100, 300)})
+  await page.type(".add_info textarea", json["address_details"], {delay: random(100, 300)})
+  await page.type(".comments textarea", json["comments"], {delay: random(100, 300)})
 
-  // click on [ Pay on delivery ]
-  await page.click('#submitOrder-pay_in_place');
+  // Click on "Pay on delivery" button.
+  await page.click("#submitOrder-pay_in_place")
   
-  // close the browser
-  // await browser.close();
+  // Close the browser.
+  await browser.close()
 }
 
 function random(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
+  return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
 
-app.post('/orders', (request, response) => {
-  response.status(200).end();
+app.post("/orders", (request, response) => {
+  response.status(200).end()
 
   process(request.body)
     .then(() => {
-      let url = 'http://f97c8d3b.ngrok.io/done';
+      const url = "http://f97c8d3b.ngrok.io/done"
       axios.post(url)
         .then(response => {
-          console.log(response.statusText);
+          console.log(response.statusText)
         })
         .catch(error => {
-          console.error(error);
-        });
+          console.error(error)
+        })
     })
     .catch(error => {
-      console.error(error);
-    });
-});
+      console.error(error)
+    })
+})
 
-app.listen(app.get('port'), () => {
-  console.log('Express is running on port ' + app.get('port'));
-});
+app.listen(app.get("port"), () => {
+  console.log("Express is running on port " + app.get("port"))
+})
